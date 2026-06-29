@@ -9,7 +9,6 @@ export const assets = {
   logo: '/assets/logos/logo.svg',
   logoNautitech: '/assets/logos/logo-nautitech.svg',
   logoQuest: '/assets/logos/logotgq.svg',
-  chapterCircle: '/assets/icons/CIRCLE.svg',
 }
 
 export const header = {
@@ -19,17 +18,16 @@ export const header = {
   soundOff: 'Son désactivé',
 }
 
-
 export const chapterCoordinates = [
-  { x: 122, y: 73 },
-  { x: 91, y: 111 },
-  { x: 62, y: 153 },
-  { x: 37, y: 199 },
-  { x: 20, y: 250 },
-  { x: 20, y: 356 },
-  { x: 37, y: 407 },
-  { x: 62, y: 453 },
-  { x: 122, y: 535 },
+  { x: 74, y: 28 },
+  { x: 48, y: 54 },
+  { x: 29, y: 88 },
+  { x: 18, y: 128 },
+  { x: 14, y: 171 },
+  { x: 18, y: 214 },
+  { x: 29, y: 254 },
+  { x: 48, y: 288 },
+  { x: 74, y: 314 },
 ]
 
 export const chapters = [
