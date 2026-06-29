@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { assets, chapterCoordinates, chapters, formFields, header, sections, settings } from './data/siteContent.js'
+import { assets, chapterCoordinates, chapters, formCopy, formFields, header, sections, settings } from './data/siteContent.js'
 import { eventRegions } from './data/events.js'
 import { dimensions, dimensionsIntro } from './data/dimensions.js'
 import { specs, specsHeader } from './data/specs.js'
@@ -102,6 +102,26 @@ function VideoBackground({ src, muted, className = '' }) {
   return <video className={`video-bg ${className}`} src={src} autoPlay muted={muted} loop playsInline preload="metadata" />
 }
 
+function SoundIcon({ muted }) {
+  return (
+    <svg className="sound-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 9.5H8L13 5V19L8 14.5H4V9.5Z" />
+      <path className="sound-wave" d="M16 8.5C17.15 9.45 17.85 10.62 17.85 12C17.85 13.38 17.15 14.55 16 15.5" />
+      {muted ? <path className="sound-slash" d="M19 7L15 17" /> : null}
+    </svg>
+  )
+}
+
+function BurgerIcon() {
+  return (
+    <svg className="burger-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M5 7H19" />
+      <path d="M5 12H19" />
+      <path d="M5 17H19" />
+    </svg>
+  )
+}
+
 function FixedHeader({ muted, menuOpen, onToggleMenu, onToggleSound, onOpenForm }) {
   return (
     <>
@@ -111,20 +131,19 @@ function FixedHeader({ muted, menuOpen, onToggleMenu, onToggleSound, onOpenForm 
         </div>
         <div className="header-right">
           <button className="sound-toggle glass-pill" type="button" onClick={onToggleSound} aria-label={muted ? header.soundOff : header.soundOn}>
-            <span className="sound-dot" />
-            <span>{muted ? 'Son off' : 'Son on'}</span>
+            <SoundIcon muted={muted} />
+            <span className="sound-label">{muted ? 'Son off' : 'Son on'}</span>
           </button>
-          <button className="primary-pill desktop-only" type="button" onClick={onOpenForm}>{header.cta}</button>
+          <button className="primary-pill desktop-only" type="button" onClick={() => onOpenForm('trial')}>{header.cta}</button>
           <button className="language-pill glass-pill desktop-only" type="button">{header.language}</button>
           <button className={menuOpen ? 'burger-button glass-pill is-open' : 'burger-button glass-pill'} type="button" onClick={onToggleMenu} aria-label="Ouvrir le menu" aria-expanded={menuOpen}>
-            <span />
-            <span />
+            <BurgerIcon />
           </button>
         </div>
       </header>
       {menuOpen ? (
         <div className="mobile-menu glass-panel">
-          <button type="button" onClick={onOpenForm}>{header.cta}</button>
+          <button type="button" onClick={() => onOpenForm('trial')}>{header.cta}</button>
           <button type="button">Langue : {header.language}</button>
         </div>
       ) : null}
@@ -197,7 +216,7 @@ function InviteSection({ muted, onOpenForm }) {
       <div className="invite-card glass-panel reveal-block">
         <h2>{section.title}</h2>
         <p>{section.description}</p>
-        <button className="primary-cta" type="button" onClick={onOpenForm}>{section.cta}</button>
+        <button className="primary-cta" type="button" onClick={() => onOpenForm('trial')}>{section.cta}</button>
       </div>
     </section>
   )
@@ -214,7 +233,7 @@ function EventMap({ region, activeEventId, onSelectEvent }) {
             <button
               key={event.id}
               type="button"
-              className={event.id === activeEventId ? 'map-pin is-active' : 'map-pin'}
+              className={['map-pin', event.status === 'open' ? 'is-open' : 'is-soon', event.id === activeEventId ? 'is-active' : ''].filter(Boolean).join(' ')}
               style={{ '--pin-x': `${event.pin.x}%`, '--pin-y': `${event.pin.y}%` }}
               onClick={() => onSelectEvent(event.id)}
               aria-label={`Sélectionner ${event.city}`}
@@ -236,7 +255,7 @@ function EventsMapSection({ onOpenForm, onOpenEventVideo }) {
 
   useEffect(() => {
     setActiveEventId(activeRegion.events[0]?.id ?? '')
-  }, [activeRegionId])
+  }, [activeRegionId, activeRegion.events])
 
   return (
     <section className="snap-section events-section" id="events">
@@ -257,9 +276,9 @@ function EventsMapSection({ onOpenForm, onOpenEventVideo }) {
             </button>
           ))}
         </div>
-        <div className="events-list reveal-stagger" key={activeRegion.id}>
+        <div className="events-list">
           {activeRegion.events.map((event) => (
-            <article className={event.id === activeEventId ? 'event-card is-active' : 'event-card'} key={`${activeRegion.id}-${event.id}`} onMouseEnter={() => setActiveEventId(event.id)}>
+            <article className={[event.id === activeEventId ? 'is-active' : '', event.status === 'open' ? 'is-open' : 'is-soon', 'event-card'].join(' ')} key={`${activeRegion.id}-${event.id}`}>
               <button className="event-select-zone" type="button" onClick={() => setActiveEventId(event.id)} aria-label={`Voir ${event.city}`} />
               <div className="event-meta">
                 <span>{event.number}</span>
@@ -269,7 +288,7 @@ function EventsMapSection({ onOpenForm, onOpenEventVideo }) {
                 <h3>{event.city}</h3>
                 <p><strong>Lieu :</strong> {event.place}</p>
                 <div className="event-actions">
-                  <button type="button" disabled={event.status !== 'open'} onClick={onOpenForm}>{event.cta}</button>
+                  <button type="button" disabled={event.status !== 'open'} onClick={() => onOpenForm('trial')}>{event.cta}</button>
                   {event.video ? <button type="button" className="ghost-action" onClick={() => onOpenEventVideo(event.video)}>{event.videoLabel ?? 'Video'}</button> : null}
                 </div>
               </div>
@@ -296,7 +315,7 @@ function CountdownSection({ onOpenForm, remaining, shouldRender }) {
           <div><strong>{remaining.minutes}</strong><span>Min</span></div>
           <div><strong>{remaining.seconds}</strong><span>Sec</span></div>
         </div>
-        <button className="primary-cta" type="button" onClick={onOpenForm}>{section.cta}</button>
+        <button className="primary-cta" type="button" onClick={() => onOpenForm('newsletter')}>{section.cta}</button>
       </div>
     </section>
   )
@@ -407,14 +426,14 @@ function FooterSection({ onOpenForm }) {
           <span className="hashtag">{footer.hashtag}</span>
         </div>
         <div>
-          <button className="primary-cta" type="button" onClick={onOpenForm}>{footer.primaryCta}</button>
+          <button className="primary-cta" type="button" onClick={() => onOpenForm('trial')}>{footer.primaryCta}</button>
           <button className="text-link" type="button">{footer.rangeLabel}</button>
         </div>
         <div>
           <h3>{footer.contactTitle}</h3>
           <button className="text-link" type="button">{footer.phoneLabel}</button>
           <p>{footer.contactText}</p>
-          <button className="text-link" type="button" onClick={onOpenForm}>{footer.formLabel}</button>
+          <button className="text-link" type="button" onClick={() => onOpenForm('trial')}>{footer.formLabel}</button>
         </div>
         <div>
           <h3>{footer.joinLabel}</h3>
@@ -425,28 +444,37 @@ function FooterSection({ onOpenForm }) {
   )
 }
 
-function FormModal({ open, onClose }) {
+function FormModal({ open, mode, onClose }) {
   if (!open) return null
+  const copy = formCopy[mode] ?? formCopy.trial
+  const fields = formFields.filter((field) => field.forms.includes(mode))
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <div className="form-modal glass-panel" role="dialog" aria-modal="true" aria-labelledby="form-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer">×</button>
-        <span className="eyebrow">Nautitech 41 Type S</span>
-        <h2 id="form-title">Réservez votre essai</h2>
-        <p>Indiquez vos informations, l’équipe Nautitech pourra revenir vers vous avec les prochaines disponibilités.</p>
+        <span className="eyebrow">{copy.eyebrow}</span>
+        <h2 id="form-title">{copy.title}</h2>
+        <p>{copy.description}</p>
         <form className="contact-form" onSubmit={(event) => event.preventDefault()}>
-          {formFields.map((field) => (
+          {fields.map((field) => (
             <label key={field.name}>
               <span>{field.label}{field.required ? ' *' : ''}</span>
               <input name={field.name} type={field.type} required={field.required} />
             </label>
           ))}
-          <label className="form-full">
-            <span>Message</span>
-            <textarea name="message" rows="4" />
-          </label>
-          <button className="primary-cta form-full" type="submit">Envoyer la demande</button>
+          {mode === 'trial' ? (
+            <label className="form-full">
+              <span>Message</span>
+              <textarea name="message" rows="4" />
+            </label>
+          ) : (
+            <label className="form-full checkbox-field">
+              <input name="consent" type="checkbox" required />
+              <span>J’accepte de recevoir les actualités Nautitech.</span>
+            </label>
+          )}
+          <button className="primary-cta form-full" type="submit">{copy.submit}</button>
         </form>
       </div>
     </div>
@@ -480,6 +508,7 @@ function EventVideoModal({ src, onClose }) {
 function App() {
   const [muted, setMuted] = useState(true)
   const [formOpen, setFormOpen] = useState(false)
+  const [formMode, setFormMode] = useState('trial')
   const [menuOpen, setMenuOpen] = useState(false)
   const [videoSrc, setVideoSrc] = useState('')
   const [eventVideoSrc, setEventVideoSrc] = useState('')
@@ -528,16 +557,23 @@ function App() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  const openForm = () => {
+  const openForm = (mode = 'trial') => {
+    setFormMode(mode)
     setMenuOpen(false)
     setFormOpen(true)
   }
+
+  const shellClassName = [
+    'app-shell',
+    settings.snapScroll ? 'has-snap' : '',
+    settings.mobileSnapScroll ? 'has-mobile-snap' : '',
+  ].filter(Boolean).join(' ')
 
   return (
     <>
       <FixedHeader muted={muted} menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((value) => !value)} onToggleSound={() => setMuted((value) => !value)} onOpenForm={openForm} />
       <ChapterNav items={navItems} activeId={activeId} />
-      <main className={settings.snapScroll ? 'app-shell has-snap' : 'app-shell'}>
+      <main className={shellClassName}>
         <HeroSection muted={muted} />
         <FilmSection muted={muted} />
         <InviteSection muted={muted} onOpenForm={openForm} />
@@ -548,7 +584,7 @@ function App() {
         <SpecsSection />
         <FooterSection onOpenForm={openForm} />
       </main>
-      <FormModal open={formOpen} onClose={() => setFormOpen(false)} />
+      <FormModal open={formOpen} mode={formMode} onClose={() => setFormOpen(false)} />
       <VideoModal src={videoSrc} onClose={() => setVideoSrc('')} />
       <EventVideoModal src={eventVideoSrc} onClose={() => setEventVideoSrc('')} />
     </>
