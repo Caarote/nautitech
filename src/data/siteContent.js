@@ -1,5 +1,6 @@
 export const settings = {
-  snapScroll: true, // true = scroll ancré desktop, mobile reste en scroll naturel
+  snapScroll: true, // true = scroll ancré desktop
+  mobileSnapScroll: true, // true = test du scroll snap aussi en mobile
   countdownVisibleDuringDev: true, // true = garde l’écran 5 visible pendant la phase de review
   showLockedNavState: true,
   formRecipient: '',
@@ -19,15 +20,15 @@ export const header = {
 }
 
 export const chapterCoordinates = [
-  { x: 74, y: 28 },
-  { x: 48, y: 54 },
-  { x: 29, y: 88 },
-  { x: 18, y: 128 },
-  { x: 14, y: 171 },
-  { x: 18, y: 214 },
-  { x: 29, y: 254 },
-  { x: 48, y: 288 },
-  { x: 74, y: 314 },
+  { x: 68, y: 20 },
+  { x: 47, y: 58 },
+  { x: 32, y: 101 },
+  { x: 24, y: 149 },
+  { x: 22, y: 180 },
+  { x: 24, y: 211 },
+  { x: 32, y: 259 },
+  { x: 47, y: 302 },
+  { x: 68, y: 340 },
 ]
 
 export const chapters = [
@@ -93,11 +94,26 @@ export const sections = {
   },
 }
 
+export const formCopy = {
+  trial: {
+    eyebrow: 'Nautitech 41 Type S',
+    title: 'Réservez votre essai',
+    description: 'Indiquez vos informations, l’équipe Nautitech pourra revenir vers vous avec les prochaines disponibilités.',
+    submit: 'Envoyer la demande',
+  },
+  newsletter: {
+    eyebrow: 'The Great Quest',
+    title: 'Recevoir les prochaines actualités',
+    description: 'Inscrivez-vous pour être informé des prochaines étapes de la quête Nautitech.',
+    submit: 'M’inscrire aux actualités',
+  },
+}
+
 export const formFields = [
-  { name: 'firstName', label: 'Prénom', type: 'text', required: true },
-  { name: 'lastName', label: 'Nom', type: 'text', required: true },
-  { name: 'email', label: 'Email', type: 'email', required: true },
-  { name: 'phone', label: 'Téléphone', type: 'tel', required: false },
-  { name: 'country', label: 'Pays', type: 'text', required: false },
-  { name: 'event', label: 'Événement souhaité', type: 'text', required: false },
+  { name: 'firstName', label: 'Prénom', type: 'text', required: true, forms: ['trial', 'newsletter'] },
+  { name: 'lastName', label: 'Nom', type: 'text', required: true, forms: ['trial'] },
+  { name: 'email', label: 'Email', type: 'email', required: true, forms: ['trial', 'newsletter'] },
+  { name: 'phone', label: 'Téléphone', type: 'tel', required: false, forms: ['trial'] },
+  { name: 'country', label: 'Pays', type: 'text', required: false, forms: ['trial', 'newsletter'] },
+  { name: 'event', label: 'Événement souhaité', type: 'text', required: false, forms: ['trial'] },
 ]
