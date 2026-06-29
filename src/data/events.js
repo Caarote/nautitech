@@ -18,7 +18,7 @@ export const eventRegions = [
         cta: "S'inscrire",
         videoLabel: 'Video',
         video: sampleEventVideo,
-        pin: { x: 38, y: 59 },
+        pin: { x: 31, y: 61 },
       },
       {
         id: 'saint-tropez',
@@ -30,7 +30,7 @@ export const eventRegions = [
         cta: "S'inscrire",
         videoLabel: 'Video',
         video: sampleEventVideo,
-        pin: { x: 54, y: 74 },
+        pin: { x: 47, y: 73 },
       },
       {
         id: 'southampton',
@@ -40,7 +40,7 @@ export const eventRegions = [
         place: locationText,
         status: 'soon',
         cta: 'Bientôt',
-        pin: { x: 39, y: 43 },
+        pin: { x: 36, y: 45 },
       },
     ],
   },
@@ -50,9 +50,9 @@ export const eventRegions = [
     enabled: true,
     map: '/assets/maps/carte-usa.svg',
     events: [
-      { id: 'miami', number: '01', date: '18.06.26', city: 'Miami', place: locationText, status: 'soon', cta: 'Bientôt', pin: { x: 78, y: 72 } },
-      { id: 'san-francisco', number: '02', date: '18.06.26', city: 'San Francisco', place: locationText, status: 'soon', cta: 'Bientôt', pin: { x: 16, y: 49 } },
-      { id: 'washington', number: '03', date: '18.06.26', city: 'Washington', place: locationText, status: 'soon', cta: 'Bientôt', pin: { x: 76, y: 46 } },
+      { id: 'miami', number: '01', date: '18.06.26', city: 'Miami', place: locationText, status: 'soon', cta: 'Bientôt', pin: { x: 80, y: 74 } },
+      { id: 'san-francisco', number: '02', date: '18.06.26', city: 'San Francisco', place: locationText, status: 'soon', cta: 'Bientôt', pin: { x: 15, y: 51 } },
+      { id: 'washington', number: '03', date: '18.06.26', city: 'Washington', place: locationText, status: 'soon', cta: 'Bientôt', pin: { x: 77, y: 48 } },
     ],
   },
   {
