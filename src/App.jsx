@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { assets, chapterCoordinates, chapters, formFields, header, sections, settings } from './data/siteContent.js'
 import { eventRegions } from './data/events.js'
 import { dimensions, dimensionsIntro } from './data/dimensions.js'
@@ -68,39 +68,77 @@ function useRevealOnView() {
   })
 }
 
+function useMobileDimensionScroll(count) {
+  const ref = useRef(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    const update = () => {
+      const node = ref.current
+      if (!node || window.innerWidth > 980) return
+      const rect = node.getBoundingClientRect()
+      const scrollable = Math.max(1, rect.height - window.innerHeight)
+      const progress = Math.min(0.999, Math.max(0, -rect.top / scrollable))
+      setActiveIndex(Math.min(count - 1, Math.floor(progress * count)))
+    }
+
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [count])
+
+  return { ref, activeIndex }
+}
+
 function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function VideoBackground({ src, muted, className = '' }) {
-  return (
-    <video className={`video-bg ${className}`} src={src} autoPlay muted={muted} loop playsInline preload="metadata" />
-  )
+  return <video className={`video-bg ${className}`} src={src} autoPlay muted={muted} loop playsInline preload="metadata" />
 }
 
-function FixedHeader({ muted, onToggleSound, onOpenForm }) {
+function FixedHeader({ muted, menuOpen, onToggleMenu, onToggleSound, onOpenForm }) {
   return (
-    <header className="fixed-header" aria-label="Navigation principale">
-      <div className="header-left">
-        <img className="brand-logo" src={assets.logo} alt="Nautitech" />
-      </div>
-      <div className="header-right">
-        <button className="sound-toggle glass-pill" type="button" onClick={onToggleSound} aria-label={muted ? header.soundOff : header.soundOn}>
-          <span className="sound-dot" />
-          <span>{muted ? 'Son off' : 'Son on'}</span>
-        </button>
-        <button className="primary-pill" type="button" onClick={onOpenForm}>{header.cta}</button>
-        <button className="language-pill glass-pill" type="button">{header.language}</button>
-      </div>
-    </header>
+    <>
+      <header className="fixed-header" aria-label="Navigation principale">
+        <div className="header-left">
+          <img className="brand-logo" src={assets.logo} alt="Nautitech" />
+        </div>
+        <div className="header-right">
+          <button className="sound-toggle glass-pill" type="button" onClick={onToggleSound} aria-label={muted ? header.soundOff : header.soundOn}>
+            <span className="sound-dot" />
+            <span>{muted ? 'Son off' : 'Son on'}</span>
+          </button>
+          <button className="primary-pill desktop-only" type="button" onClick={onOpenForm}>{header.cta}</button>
+          <button className="language-pill glass-pill desktop-only" type="button">{header.language}</button>
+          <button className={menuOpen ? 'burger-button glass-pill is-open' : 'burger-button glass-pill'} type="button" onClick={onToggleMenu} aria-label="Ouvrir le menu" aria-expanded={menuOpen}>
+            <span />
+            <span />
+          </button>
+        </div>
+      </header>
+      {menuOpen ? (
+        <div className="mobile-menu glass-panel">
+          <button type="button" onClick={onOpenForm}>{header.cta}</button>
+          <button type="button">Langue : {header.language}</button>
+        </div>
+      ) : null}
+    </>
   )
 }
 
 function ChapterNav({ items, activeId }) {
+  const path = 'M68 20 C36 56 21 108 22 172 C21 236 36 288 68 340'
+
   return (
     <nav className="chapter-nav" aria-label="Navigation chapitres">
-      <svg className="chapter-arc" viewBox="0 0 100 342" aria-hidden="true" focusable="false">
-        <path d="M88 12 C18 62 2 121 14 171 C2 221 18 280 88 330" />
+      <svg className="chapter-arc" viewBox="0 0 90 360" aria-hidden="true" focusable="false">
+        <path d={path} />
       </svg>
       <div className="chapter-dots">
         {items.map((item, index) => {
@@ -165,14 +203,45 @@ function InviteSection({ muted, onOpenForm }) {
   )
 }
 
-function EventsMapSection({ onOpenForm }) {
+function EventMap({ region, activeEventId, onSelectEvent }) {
+  return (
+    <div className="event-map-stage">
+      {region.map ? <img key={region.map} src={region.map} alt={`Carte ${region.label}`} /> : <div className="map-placeholder">Carte bientôt disponible</div>}
+      <div className="map-pins" aria-label={`Villes ${region.label}`}>
+        {region.events.map((event) => {
+          if (!event.pin) return null
+          return (
+            <button
+              key={event.id}
+              type="button"
+              className={event.id === activeEventId ? 'map-pin is-active' : 'map-pin'}
+              style={{ '--pin-x': `${event.pin.x}%`, '--pin-y': `${event.pin.y}%` }}
+              onClick={() => onSelectEvent(event.id)}
+              aria-label={`Sélectionner ${event.city}`}
+            >
+              <span />
+              <em>{event.city}</em>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function EventsMapSection({ onOpenForm, onOpenEventVideo }) {
   const [activeRegionId, setActiveRegionId] = useState('europe')
   const activeRegion = eventRegions.find((region) => region.id === activeRegionId) ?? eventRegions[0]
+  const [activeEventId, setActiveEventId] = useState(activeRegion.events[0]?.id ?? '')
+
+  useEffect(() => {
+    setActiveEventId(activeRegion.events[0]?.id ?? '')
+  }, [activeRegionId])
 
   return (
     <section className="snap-section events-section" id="events">
       <div className="map-wrap reveal-block">
-        {activeRegion.map ? <img key={activeRegion.map} src={activeRegion.map} alt={`Carte ${activeRegion.label}`} /> : <div className="map-placeholder">Carte bientôt disponible</div>}
+        <EventMap region={activeRegion} activeEventId={activeEventId} onSelectEvent={setActiveEventId} />
       </div>
       <aside className="events-panel glass-panel reveal-block delay-1">
         <div className="region-tabs" role="tablist" aria-label="Régions">
@@ -190,7 +259,8 @@ function EventsMapSection({ onOpenForm }) {
         </div>
         <div className="events-list reveal-stagger" key={activeRegion.id}>
           {activeRegion.events.map((event) => (
-            <article className="event-card" key={`${activeRegion.id}-${event.number}-${event.city}`}>
+            <article className={event.id === activeEventId ? 'event-card is-active' : 'event-card'} key={`${activeRegion.id}-${event.id}`} onMouseEnter={() => setActiveEventId(event.id)}>
+              <button className="event-select-zone" type="button" onClick={() => setActiveEventId(event.id)} aria-label={`Voir ${event.city}`} />
               <div className="event-meta">
                 <span>{event.number}</span>
                 <span>{event.date}</span>
@@ -200,7 +270,7 @@ function EventsMapSection({ onOpenForm }) {
                 <p><strong>Lieu :</strong> {event.place}</p>
                 <div className="event-actions">
                   <button type="button" disabled={event.status !== 'open'} onClick={onOpenForm}>{event.cta}</button>
-                  {event.videoLabel ? <button type="button" className="ghost-action">{event.videoLabel}</button> : null}
+                  {event.video ? <button type="button" className="ghost-action" onClick={() => onOpenEventVideo(event.video)}>{event.videoLabel ?? 'Video'}</button> : null}
                 </div>
               </div>
             </article>
@@ -250,22 +320,39 @@ function VideoRevealSection({ onOpenVideo }) {
   )
 }
 
+function MobileDimensionsStory() {
+  const { ref, activeIndex } = useMobileDimensionScroll(dimensions.length)
+  const active = dimensions[activeIndex]
+
+  return (
+    <div className="mobile-dimensions-story" ref={ref}>
+      <div className="mobile-dimensions-sticky">
+        <span className="mobile-progress">{active.number} / 07</span>
+        <div className="mobile-dimension-card glass-panel" key={active.number}>
+          <span className="dimension-number">{active.number}</span>
+          <h3>{active.title}</h3>
+          <p>{active.description}</p>
+          <img src={active.image} alt="Nautitech 41 Type S" />
+        </div>
+        <div className="mobile-dimension-dots" aria-hidden="true">
+          {dimensions.map((item, index) => <span key={item.number} className={index === activeIndex ? 'is-active' : ''} />)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function DimensionsSection() {
   const [activeIndex, setActiveIndex] = useState(0)
   const active = dimensions[activeIndex]
 
   return (
     <section className="snap-section dimensions-section" id="dimensions">
-      <div className="dimensions-list reveal-block">
+      <div className="dimensions-desktop-list reveal-block">
         <h2>{dimensionsIntro}</h2>
         <div className="dimension-items reveal-stagger">
           {dimensions.map((item, index) => (
-            <button
-              type="button"
-              key={item.number}
-              className={index === activeIndex ? 'dimension-item is-active' : 'dimension-item'}
-              onClick={() => setActiveIndex(index)}
-            >
+            <button type="button" key={item.number} className={index === activeIndex ? 'dimension-item is-active' : 'dimension-item'} onClick={() => setActiveIndex(index)}>
               <span className="dimension-number">{item.number}</span>
               <span className="dimension-copy">
                 <strong>{item.title}</strong>
@@ -278,6 +365,10 @@ function DimensionsSection() {
       <div className="dimension-visual reveal-block delay-1">
         <img key={active.image} src={active.image} alt="Nautitech 41 Type S" />
       </div>
+      <div className="dimensions-mobile-intro">
+        <h2>{dimensionsIntro}</h2>
+      </div>
+      <MobileDimensionsStory />
     </section>
   )
 }
@@ -364,7 +455,6 @@ function FormModal({ open, onClose }) {
 
 function VideoModal({ src, onClose }) {
   if (!src) return null
-
   return (
     <div className="video-overlay" role="presentation" onMouseDown={onClose}>
       <div className="fullscreen-video" role="dialog" aria-modal="false" onMouseDown={(event) => event.stopPropagation()}>
@@ -375,10 +465,24 @@ function VideoModal({ src, onClose }) {
   )
 }
 
+function EventVideoModal({ src, onClose }) {
+  if (!src) return null
+  return (
+    <div className="modal-backdrop event-video-backdrop" role="presentation" onMouseDown={onClose}>
+      <div className="event-video-modal glass-panel" role="dialog" aria-modal="true" aria-label="Vidéo événement" onMouseDown={(event) => event.stopPropagation()}>
+        <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer">×</button>
+        <video src={src} controls autoPlay playsInline />
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [muted, setMuted] = useState(true)
   const [formOpen, setFormOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [videoSrc, setVideoSrc] = useState('')
+  const [eventVideoSrc, setEventVideoSrc] = useState('')
 
   const countdownRemaining = useCountdown(sections.countdown.targetDate)
   const countdownShouldRender = settings.countdownVisibleDuringDev || !sections.countdown.hideWhenFinished || countdownRemaining.total > 0
@@ -391,13 +495,7 @@ function App() {
       { id: 'events', label: chapters[3] },
     ]
 
-    if (countdownShouldRender) {
-      items.push({
-        id: sections.countdown.id,
-        label: chapters[4],
-        locked: settings.showLockedNavState && countdownRemaining.total > 0,
-      })
-    }
+    if (countdownShouldRender) items.push({ id: sections.countdown.id, label: chapters[4], locked: settings.showLockedNavState && countdownRemaining.total > 0 })
 
     items.push(
       { id: sections.videoReveal.id, label: chapters[5] },
@@ -421,30 +519,38 @@ function App() {
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
         setFormOpen(false)
+        setMenuOpen(false)
         setVideoSrc('')
+        setEventVideoSrc('')
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
+  const openForm = () => {
+    setMenuOpen(false)
+    setFormOpen(true)
+  }
+
   return (
     <>
-      <FixedHeader muted={muted} onToggleSound={() => setMuted((value) => !value)} onOpenForm={() => setFormOpen(true)} />
+      <FixedHeader muted={muted} menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((value) => !value)} onToggleSound={() => setMuted((value) => !value)} onOpenForm={openForm} />
       <ChapterNav items={navItems} activeId={activeId} />
       <main className={settings.snapScroll ? 'app-shell has-snap' : 'app-shell'}>
         <HeroSection muted={muted} />
         <FilmSection muted={muted} />
-        <InviteSection muted={muted} onOpenForm={() => setFormOpen(true)} />
-        <EventsMapSection onOpenForm={() => setFormOpen(true)} />
-        <CountdownSection onOpenForm={() => setFormOpen(true)} remaining={countdownRemaining} shouldRender={countdownShouldRender} />
+        <InviteSection muted={muted} onOpenForm={openForm} />
+        <EventsMapSection onOpenForm={openForm} onOpenEventVideo={setEventVideoSrc} />
+        <CountdownSection onOpenForm={openForm} remaining={countdownRemaining} shouldRender={countdownShouldRender} />
         <VideoRevealSection onOpenVideo={setVideoSrc} />
         <DimensionsSection />
         <SpecsSection />
-        <FooterSection onOpenForm={() => setFormOpen(true)} />
+        <FooterSection onOpenForm={openForm} />
       </main>
       <FormModal open={formOpen} onClose={() => setFormOpen(false)} />
       <VideoModal src={videoSrc} onClose={() => setVideoSrc('')} />
+      <EventVideoModal src={eventVideoSrc} onClose={() => setEventVideoSrc('')} />
     </>
   )
 }
