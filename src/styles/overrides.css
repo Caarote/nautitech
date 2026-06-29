@@ -1,0 +1,136 @@
+.sound-toggle {
+  display: inline-grid;
+  grid-auto-flow: column;
+  place-items: center;
+  gap: 8px;
+}
+.sound-icon {
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+}
+.sound-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sound-icon path:first-child {
+  fill: currentColor;
+  stroke: none;
+}
+.sound-icon .sound-slash {
+  stroke: var(--gold);
+  stroke-width: 2;
+}
+.burger-button {
+  display: none;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+}
+.burger-icon {
+  width: 22px;
+  height: 22px;
+}
+.burger-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  transition: transform 500ms var(--ease), opacity 500ms var(--ease);
+  transform-origin: center;
+}
+.burger-button.is-open .burger-icon path:nth-child(1) {
+  transform: translateY(5px) rotate(45deg);
+}
+.burger-button.is-open .burger-icon path:nth-child(2) {
+  opacity: 0;
+}
+.burger-button.is-open .burger-icon path:nth-child(3) {
+  transform: translateY(-5px) rotate(-45deg);
+}
+
+.events-list .event-card {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+.event-card.is-soon {
+  opacity: 0.62;
+}
+.event-card.is-soon.is-active {
+  opacity: 0.78;
+}
+.event-card.is-open.is-active {
+  background: linear-gradient(90deg, rgb(201 156 35 / 0.10), transparent 72%);
+}
+.map-pin.is-soon span {
+  background: rgb(31 31 31 / 0.34);
+  box-shadow: 0 0 0 8px rgb(31 31 31 / 0.08), 0 12px 30px rgb(31 31 31 / 0.14);
+}
+.map-pin.is-soon:hover span,
+.map-pin.is-soon.is-active span {
+  box-shadow: 0 0 0 13px rgb(31 31 31 / 0.12), 0 18px 42px rgb(31 31 31 / 0.18);
+}
+.map-pin.is-open span {
+  background: var(--gold);
+}
+.map-pin.is-open.is-active span {
+  transform: scale(1.65);
+}
+
+.checkbox-field {
+  grid-template-columns: 18px 1fr;
+  align-items: start;
+  gap: 10px;
+}
+.checkbox-field input {
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--gold);
+}
+.checkbox-field span {
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .app-shell.has-snap:not(.has-mobile-snap) {
+    height: auto;
+    overflow-y: visible;
+    scroll-snap-type: none;
+  }
+  .app-shell.has-snap.has-mobile-snap {
+    height: 100svh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .app-shell.has-mobile-snap .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+  }
+  .app-shell.has-mobile-snap .dimensions-section {
+    scroll-snap-align: start;
+  }
+  .sound-toggle {
+    width: 42px;
+    padding: 0;
+    font-size: 0;
+  }
+  .sound-label {
+    display: none;
+  }
+  .burger-button {
+    display: grid;
+  }
+  .mobile-menu {
+    display: grid;
+  }
+  .sound-dot {
+    display: none !important;
+  }
+}
