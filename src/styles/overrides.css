@@ -115,12 +115,13 @@
   }
   .app-shell.has-mobile-snap .dimensions-section,
   .app-shell.has-mobile-snap .specs-section {
-    scroll-snap-align: none;
+    scroll-snap-align: start;
     scroll-snap-stop: normal;
   }
   .app-shell.has-mobile-snap .mobile-dimensions-story,
   .app-shell.has-mobile-snap .specs-section * {
     scroll-snap-align: none;
+    scroll-snap-stop: normal;
   }
   .sound-toggle {
     width: 42px;
