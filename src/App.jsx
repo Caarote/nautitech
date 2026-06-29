@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { assets, chapterCoordinates, chapters, formFields, header, sections, settings } from './data/siteContent.js'
 import { eventRegions } from './data/events.js'
 import { dimensions, dimensionsIntro } from './data/dimensions.js'
@@ -37,7 +37,7 @@ function useActiveSection(sectionIds) {
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
         if (visible?.target?.id) setActive(visible.target.id)
       },
-      { threshold: [0.45, 0.6, 0.75] },
+      { threshold: [0.42, 0.58, 0.72] },
     )
 
     sectionIds.forEach((id) => {
@@ -49,6 +49,23 @@ function useActiveSection(sectionIds) {
   }, [sectionIds])
 
   return active
+}
+
+function useRevealOnView() {
+  useEffect(() => {
+    const nodes = Array.from(document.querySelectorAll('.reveal-block, .reveal-stagger > *'))
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible')
+        })
+      },
+      { threshold: 0.18, rootMargin: '0px 0px -7% 0px' },
+    )
+
+    nodes.forEach((node) => observer.observe(node))
+    return () => observer.disconnect()
+  })
 }
 
 function scrollToSection(id) {
@@ -82,7 +99,9 @@ function FixedHeader({ muted, onToggleSound, onOpenForm }) {
 function ChapterNav({ items, activeId }) {
   return (
     <nav className="chapter-nav" aria-label="Navigation chapitres">
-      <img className="chapter-arc" src={assets.chapterCircle} alt="" aria-hidden="true" />
+      <svg className="chapter-arc" viewBox="0 0 100 342" aria-hidden="true" focusable="false">
+        <path d="M88 12 C18 62 2 121 14 171 C2 221 18 280 88 330" />
+      </svg>
       <div className="chapter-dots">
         {items.map((item, index) => {
           const isActive = activeId === item.id
@@ -107,7 +126,7 @@ function ChapterNav({ items, activeId }) {
   )
 }
 
-function HeroSection({ muted, onOpenForm }) {
+function HeroSection({ muted }) {
   const section = sections.hero
   return (
     <section className="snap-section hero-section" id={section.id}>
@@ -153,7 +172,7 @@ function EventsMapSection({ onOpenForm }) {
   return (
     <section className="snap-section events-section" id="events">
       <div className="map-wrap reveal-block">
-        {activeRegion.map ? <img src={activeRegion.map} alt={`Carte ${activeRegion.label}`} /> : <div className="map-placeholder">Carte bientôt disponible</div>}
+        {activeRegion.map ? <img key={activeRegion.map} src={activeRegion.map} alt={`Carte ${activeRegion.label}`} /> : <div className="map-placeholder">Carte bientôt disponible</div>}
       </div>
       <aside className="events-panel glass-panel reveal-block delay-1">
         <div className="region-tabs" role="tablist" aria-label="Régions">
@@ -169,7 +188,7 @@ function EventsMapSection({ onOpenForm }) {
             </button>
           ))}
         </div>
-        <div className="events-list">
+        <div className="events-list reveal-stagger" key={activeRegion.id}>
           {activeRegion.events.map((event) => (
             <article className="event-card" key={`${activeRegion.id}-${event.number}-${event.city}`}>
               <div className="event-meta">
@@ -201,7 +220,7 @@ function CountdownSection({ onOpenForm, remaining, shouldRender }) {
       <div className="countdown-card glass-panel reveal-block">
         <span className="eyebrow">{section.eyebrow}</span>
         <h2>{section.title}</h2>
-        <div className="countdown-grid" aria-label="Compte à rebours">
+        <div className="countdown-grid reveal-stagger" aria-label="Compte à rebours">
           <div><strong>{remaining.days}</strong><span>Jours</span></div>
           <div><strong>{remaining.hours}</strong><span>Heures</span></div>
           <div><strong>{remaining.minutes}</strong><span>Min</span></div>
@@ -239,7 +258,7 @@ function DimensionsSection() {
     <section className="snap-section dimensions-section" id="dimensions">
       <div className="dimensions-list reveal-block">
         <h2>{dimensionsIntro}</h2>
-        <div className="dimension-items">
+        <div className="dimension-items reveal-stagger">
           {dimensions.map((item, index) => (
             <button
               type="button"
@@ -270,7 +289,7 @@ function SpecsSection() {
         <span className="eyebrow">{specsHeader.brand}</span>
         <h2>{specsHeader.model}</h2>
         <p>{specsHeader.title}<br /><small>{specsHeader.subtitle}</small></p>
-        <dl className="specs-grid">
+        <dl className="specs-grid reveal-stagger">
           {specs.map(([label, value]) => (
             <div key={label}>
               <dt>{label}</dt>
@@ -347,8 +366,8 @@ function VideoModal({ src, onClose }) {
   if (!src) return null
 
   return (
-    <div className="modal-backdrop video-modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <div className="fullscreen-video" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+    <div className="video-overlay" role="presentation" onMouseDown={onClose}>
+      <div className="fullscreen-video" role="dialog" aria-modal="false" onMouseDown={(event) => event.stopPropagation()}>
         <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer">×</button>
         <video src={src} controls autoPlay playsInline />
       </div>
@@ -392,6 +411,11 @@ function App() {
 
   const sectionIds = useMemo(() => navItems.map((item) => item.id), [navItems])
   const activeId = useActiveSection(sectionIds)
+  useRevealOnView()
+
+  useEffect(() => {
+    if (activeId !== sections.videoReveal.id) setVideoSrc('')
+  }, [activeId])
 
   useEffect(() => {
     const onKeyDown = (event) => {
