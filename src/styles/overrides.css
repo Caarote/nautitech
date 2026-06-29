@@ -69,11 +69,11 @@
 }
 .map-pin.is-soon span {
   background: rgb(31 31 31 / 0.34);
-  box-shadow: 0 0 0 8px rgb(31 31 31 / 0.08), 0 12px 30px rgb(31 31 31 / 0.14);
+  box-shadow: 0 0 0 5px rgb(31 31 31 / 0.06), 0 8px 22px rgb(31 31 31 / 0.12);
 }
 .map-pin.is-soon:hover span,
 .map-pin.is-soon.is-active span {
-  box-shadow: 0 0 0 13px rgb(31 31 31 / 0.12), 0 18px 42px rgb(31 31 31 / 0.18);
+  box-shadow: 0 0 0 9px rgb(31 31 31 / 0.10), 0 14px 34px rgb(31 31 31 / 0.16);
 }
 .map-pin.is-open span {
   background: var(--gold);
@@ -113,8 +113,14 @@
     scroll-snap-align: start;
     scroll-snap-stop: normal;
   }
-  .app-shell.has-mobile-snap .dimensions-section {
-    scroll-snap-align: start;
+  .app-shell.has-mobile-snap .dimensions-section,
+  .app-shell.has-mobile-snap .specs-section {
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+  }
+  .app-shell.has-mobile-snap .mobile-dimensions-story,
+  .app-shell.has-mobile-snap .specs-section * {
+    scroll-snap-align: none;
   }
   .sound-toggle {
     width: 42px;
