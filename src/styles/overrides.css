@@ -53,6 +53,16 @@
   transform: translateY(-5px) rotate(-45deg);
 }
 
+.event-map-stage:has(img[src*="carte-europe"]) {
+  aspect-ratio: 1115 / 1402;
+}
+.event-map-stage:has(img[src*="carte-usa"]) {
+  aspect-ratio: 1300 / 820;
+}
+.event-map-stage > img {
+  width: 100%;
+  height: 100%;
+}
 .events-list .event-card {
   opacity: 1 !important;
   transform: none !important;
@@ -98,16 +108,14 @@
 }
 
 @media (max-width: 980px) {
-  .app-shell.has-snap:not(.has-mobile-snap) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+  .app-shell.has-snap:not(.has-mobile-snap),
+  .app-shell.has-snap.has-mobile-snap {
     height: auto;
     overflow-y: visible;
     scroll-snap-type: none;
-  }
-  .app-shell.has-snap.has-mobile-snap {
-    height: 100svh;
-    overflow-y: auto;
-    scroll-snap-type: y mandatory;
-    -webkit-overflow-scrolling: touch;
   }
   .app-shell.has-mobile-snap .snap-section {
     scroll-snap-align: start;
